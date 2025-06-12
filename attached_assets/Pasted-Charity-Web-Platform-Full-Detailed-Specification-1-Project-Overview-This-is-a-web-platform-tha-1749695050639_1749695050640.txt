@@ -1,0 +1,131 @@
+Charity Web Platform – Full Detailed Specification
+🎯 1. Project Overview
+This is a web platform that connects people in need, charitable organizations, and donors. The system allows users to create, manage, and support donation campaigns (money or physical goods). An admin team oversees the operations by approving campaigns and organizations to ensure credibility and transparency.
+
+🧩 2. Roles and Permissions
+Role	Description
+👤 User	Can register, donate, apply to become an organization, and leave reviews
+🏢 Organization	A verified user who can create and manage donation campaigns
+🛡️ Admin	Manages the platform, approves/rejects orgs and campaigns, manages logs
+
+🏗️ 3. Core Features
+3.1. User Features
+Register & Login
+
+View all campaigns
+
+Donate (money or goods)
+
+Track donation history
+
+Rate completed campaigns
+
+Apply to become an organization
+
+3.2. Organization Features
+Submit application (upload documents, images, proofs)
+
+Manage profile (success rate, stars, past campaigns)
+
+Create/manage campaigns (with target, deadline, description)
+
+Report campaign progress (stages, updates, receipts)
+
+View rejection reasons if admin declines request or campaign
+
+3.3. Admin Features
+View dashboard stats
+
+Approve or reject organization applications
+
+Approve or reject campaigns
+
+Extend or disable campaigns
+
+View and manage admin logs (with reasons)
+
+🔍 4. Key Modules
+4.1. Campaigns
+Field	Description
+Title	Name of campaign
+Description	Full details
+Target	Target money or item count
+Deadline	End date
+Status	pending / approved / rejected / completed / disabled
+Categories	Many-to-many relationship (e.g., disaster, health)
+Owner	Link to organization
+Report	Section for post-campaign reports
+Rating	After completion, donors can rate & comment
+
+4.2. Organizations
+Field	Description
+Name	Organization name
+Description	Who they are and what they do
+Verification	Status: pending / approved / rejected
+Documents	Uploaded proofs (images, PDFs, etc.)
+Success Rate	% of campaigns completed
+Rating	Average rating from past campaigns
+
+4.3. Logs (Admin Logs)
+Field	Description
+Action Type	approve_org / reject_campaign / extend_campaign ...
+Target Type	campaign / org_request / user
+Target ID	ID of affected object
+Reason	Explanation for the action
+Actor ID	Admin who performed the action
+Timestamp	Date and time
+Visibility	Admin + affected user/org can see
+
+🗂️ 5. Pages in the Application
+🧑 User Pages (Public or Logged-In)
+URL	Page	Description
+/	Home	Featured campaigns, organizations
+/campaigns	Campaign list	Filters by category, location, status
+/campaigns/:id	Campaign detail	Full info, donate button
+/campaigns/:id/report	Campaign report	Progress, receipts, outcomes
+/campaigns/:id/rate	Rate campaign	Review & stars after completion
+/create-campaign	Create campaign (org only)	Campaign creation form
+/my-donations	Donation history	Donations by user
+/apply-organization	Apply to be org	Upload docs, description
+/organizations/:id	Organization profile	Their campaigns, rating, success
+/org-dashboard	Org campaign manager	Track, edit, extend campaigns
+/org-dashboard/rejections	View rejection logs (org only)	Show reason if org/campaign rejected
+
+🛡️ Admin Pages
+URL	Page	Description
+/admin	Admin dashboard	Stats, recent activity
+/admin/organization-requests	Manage org applications	Approve, reject with reason
+/admin/campaign-requests	Manage campaigns	Review, approve, reject
+/admin/logs	View action logs	All admin actions, filterable
+
+🔐 Auth Pages
+URL	Page
+/login	Login
+/register	Register
+/forgot-password	Forgot password
+
+🔧 6. Technical Stack (Suggested)
+Frontend: React (Vite)
+
+React Router for navigation
+
+TailwindCSS for UI
+
+Axios for API
+
+Backend: Node.js (Express)
+
+RESTful APIs
+
+JWT Auth
+
+Nodemailer (optional, for notifications)
+
+Database: PostgreSQL
+
+Sequelize / Prisma ORM
+
+Deployment: Replit or Docker-ready
+
+.env file support
+

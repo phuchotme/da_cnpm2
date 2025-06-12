@@ -1,10 +1,10 @@
-import { 
-  pgTable, 
-  text, 
-  serial, 
-  integer, 
-  boolean, 
-  timestamp, 
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
   decimal,
   pgEnum
 } from "drizzle-orm/pg-core";
@@ -16,7 +16,14 @@ export const userRoleEnum = pgEnum('user_role', ['user', 'organization', 'admin'
 export const campaignStatusEnum = pgEnum('campaign_status', ['pending', 'approved', 'rejected', 'completed', 'disabled']);
 export const donationTypeEnum = pgEnum('donation_type', ['money', 'goods']);
 export const organizationStatusEnum = pgEnum('organization_status', ['pending', 'approved', 'rejected']);
-export const actionTypeEnum = pgEnum('action_type', ['approve_org', 'reject_org', 'approve_campaign', 'reject_campaign', 'extend_campaign', 'disable_campaign']);
+export const actionTypeEnum = pgEnum('action_type', [
+  'approve_org',
+  'reject_org',
+  'approve_campaign',
+  'reject_campaign',
+  'extend_campaign',
+  'disable_campaign'
+]);
 
 // Users table
 export const users = pgTable("users", {
@@ -102,17 +109,38 @@ export const campaignUpdates = pgTable("campaign_updates", {
   campaignId: integer("campaign_id").references(() => campaigns.id).notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),
+  imageUrls: text("image_urls").array(), // Mảng URL ảnh, không bắt buộc
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Campaign extend requests table
+export const campaignExtendRequests = pgTable("campaign_extend_requests", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").references(() => campaigns.id).notNull(),
+  type: text("type").notNull(), // "deadline" hoặc "target"
+  value: text("value").notNull(), // số ngày hoặc số tiền muốn tăng
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default('pending'), // pending/approved/rejected
+  createdAt: timestamp("created_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  adminId: integer("admin_id").references(() => users.id),
+  adminNote: text("admin_note"),
 });
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true, successRate: true, rating: true });
-export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true, raised: true });
+export const insertCampaignSchema = createInsertSchema(campaigns)
+  .omit({ id: true, createdAt: true, raised: true })
+  .extend({
+    target: z.preprocess((val) => typeof val === "string" ? val : String(val), z.string()),
+    deadline: z.preprocess((val) => typeof val === "string" ? new Date(val) : val, z.date()),
+  });
 export const insertDonationSchema = createInsertSchema(donations).omit({ id: true, createdAt: true });
 export const insertCampaignRatingSchema = createInsertSchema(campaignRatings).omit({ id: true, createdAt: true });
 export const insertAdminLogSchema = createInsertSchema(adminLogs).omit({ id: true, createdAt: true });
 export const insertCampaignUpdateSchema = createInsertSchema(campaignUpdates).omit({ id: true, createdAt: true });
+export const insertCampaignExtendRequestSchema = createInsertSchema(campaignExtendRequests).omit({ id: true, createdAt: true, reviewedAt: true, adminId: true, adminNote: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 
 // Types
@@ -130,6 +158,8 @@ export type AdminLog = typeof adminLogs.$inferSelect;
 export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;
 export type CampaignUpdate = typeof campaignUpdates.$inferSelect;
 export type InsertCampaignUpdate = z.infer<typeof insertCampaignUpdateSchema>;
+export type CampaignExtendRequest = typeof campaignExtendRequests.$inferSelect;
+export type InsertCampaignExtendRequest = z.infer<typeof insertCampaignExtendRequestSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 

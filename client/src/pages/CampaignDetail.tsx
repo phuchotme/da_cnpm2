@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import DonationModal from "@/components/DonationModal";
-import { CheckCircle, Clock, Heart, Share, Star, Users } from "lucide-react";
-import { apiRequest } from "@/lib/api";
+import { CheckCircle, Heart, Share, Star, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function CampaignDetail() {
   const { id } = useParams();
@@ -18,6 +17,9 @@ export default function CampaignDetail() {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // State cho dialog xem tất cả cập nhật
+  const [openAllUpdates, setOpenAllUpdates] = useState(false);
 
   const { data: campaign, isLoading } = useQuery({
     queryKey: [`/api/campaigns/${id}`],
@@ -54,15 +56,15 @@ export default function CampaignDetail() {
       } else {
         await navigator.clipboard.writeText(window.location.href);
         toast({
-          title: "Link copied!",
-          description: "Campaign link copied to clipboard.",
+          title: "Đã sao chép liên kết!",
+          description: "Đường dẫn chiến dịch đã được sao chép.",
         });
       }
     },
     onError: () => {
       toast({
-        title: "Unable to share",
-        description: "Please copy the URL manually.",
+        title: "Không thể chia sẻ",
+        description: "Vui lòng sao chép URL thủ công.",
         variant: "destructive",
       });
     },
@@ -80,9 +82,9 @@ export default function CampaignDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Campaign not found</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Không tìm thấy chiến dịch</h1>
           <Button asChild>
-            <Link href="/campaigns">Back to Campaigns</Link>
+            <Link href="/campaigns">Quay lại danh sách chiến dịch</Link>
           </Button>
         </div>
       </div>
@@ -95,7 +97,7 @@ export default function CampaignDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
+        {/* Nội dung chính */}
         <div className="lg:col-span-2">
           <img
             src={campaign.imageUrl || "https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=600"}
@@ -111,7 +113,7 @@ export default function CampaignDetail() {
                 </Badge>
                 <div className="flex items-center text-secondary">
                   <CheckCircle className="w-4 h-4 mr-1" />
-                  <span className="text-sm font-medium">Verified Campaign</span>
+                  <span className="text-sm font-medium">Chiến dịch đã xác thực</span>
                 </div>
               </div>
 
@@ -123,32 +125,90 @@ export default function CampaignDetail() {
             </CardContent>
           </Card>
 
-          {/* Campaign Updates */}
+          {/* Cập nhật chiến dịch */}
           {updates && updates.length > 0 && (
             <Card className="mb-6">
               <CardHeader>
-                <h2 className="text-xl font-semibold text-neutral-900">Campaign Updates</h2>
+                <h2 className="text-xl font-semibold text-neutral-900">Cập nhật chiến dịch</h2>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  {updates.map((update: any) => (
-                    <div key={update.id} className="border-l-4 border-primary pl-4">
-                      <div className="text-sm text-neutral-600 mb-1">
-                        {new Date(update.createdAt).toLocaleDateString()}
-                      </div>
-                      <h3 className="font-medium text-neutral-900">{update.title}</h3>
-                      <p className="text-sm text-neutral-700 mt-2">{update.content}</p>
+                <div className="space-y-6">
+                  {/* Hiển thị tóm tắt cập nhật mới nhất */}
+                  <div className="border-l-4 border-primary pl-4 pb-4 bg-neutral-50 rounded">
+                    <div className="text-sm text-neutral-600 mb-1">
+                      {new Date(updates[0].createdAt).toLocaleDateString()}
                     </div>
-                  ))}
+                    <h3 className="font-medium text-neutral-900">{updates[0].title}</h3>
+                    <p className="text-sm text-neutral-700 mt-2">
+                      {updates[0].content.length > 200 ? updates[0].content.slice(0, 200) + "..." : updates[0].content}
+                    </p>
+                    {updates[0].imageUrls && updates[0].imageUrls.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {updates[0].imageUrls.slice(0, 3).map((url: string, idx: number) => (
+                          <img
+                            key={idx}
+                            src={url}
+                            alt={`Ảnh cập nhật ${idx + 1}`}
+                            className="w-20 h-20 object-cover rounded border"
+                          />
+                        ))}
+                        {updates[0].imageUrls.length > 3 && (
+                          <span className="text-xs text-neutral-500 ml-2">+{updates[0].imageUrls.length - 3} ảnh</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* Nút xem tất cả cập nhật */}
+                  <Dialog open={openAllUpdates} onOpenChange={setOpenAllUpdates}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2"
+                        onClick={() => setOpenAllUpdates(true)}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        Xem tất cả cập nhật
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Tất cả cập nhật chiến dịch</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-8 mt-2">
+                        {updates.map((update: any) => (
+                          <div key={update.id} className="border-l-4 border-primary pl-4 pb-4 bg-neutral-50 rounded">
+                            <div className="text-xs text-neutral-500 mb-1">
+                              {new Date(update.createdAt).toLocaleString()}
+                            </div>
+                            <h3 className="font-semibold text-neutral-900">{update.title}</h3>
+                            <div className="text-sm text-neutral-700 mt-2 whitespace-pre-line">{update.content}</div>
+                            {update.imageUrls && update.imageUrls.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {update.imageUrls.map((url: string, idx: number) => (
+                                  <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`Ảnh cập nhật ${idx + 1}`}
+                                    className="w-24 h-24 object-cover rounded border"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Organization Info */}
+          {/* Thông tin tổ chức */}
           <Card>
             <CardHeader>
-              <h2 className="text-xl font-semibold text-neutral-900">About {campaign.organization.name}</h2>
+              <h2 className="text-xl font-semibold text-neutral-900">Về tổ chức {campaign.organization.name}</h2>
             </CardHeader>
             <CardContent className="p-6">
               <div className="flex items-start">
@@ -164,7 +224,7 @@ export default function CampaignDetail() {
                       ))}
                     </div>
                     <span className="text-sm text-neutral-600">
-                      {campaign.organization.rating || 0}/5 rating • {campaign.organization.successRate || 0}% success rate
+                      {campaign.organization.rating || 0}/5 điểm • {campaign.organization.successRate || 0}% thành công
                     </span>
                   </div>
                   <p className="text-sm text-neutral-700">{campaign.organization.description}</p>
@@ -180,21 +240,21 @@ export default function CampaignDetail() {
             <CardContent className="p-6">
               <div className="mb-6">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  ${Math.round(parseFloat(campaign.raised)).toLocaleString()}
+                  {Math.round(parseFloat(campaign.raised)).toLocaleString()}₫
                 </div>
                 <div className="text-neutral-600 mb-1">
-                  raised of ${Math.round(parseFloat(campaign.target)).toLocaleString()} goal
+                  đã gây quỹ / {Math.round(parseFloat(campaign.target)).toLocaleString()}₫ mục tiêu
                 </div>
                 <Progress value={progressPercentage} className="mb-4" />
 
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <div className="text-lg font-semibold text-neutral-900">{donations?.length || 0}</div>
-                    <div className="text-sm text-neutral-600">Donors</div>
+                    <div className="text-sm text-neutral-600">Nhà hảo tâm</div>
                   </div>
                   <div>
                     <div className="text-lg font-semibold text-neutral-900">{Math.max(0, daysLeft)}</div>
-                    <div className="text-sm text-neutral-600">Days Left</div>
+                    <div className="text-sm text-neutral-600">Ngày còn lại</div>
                   </div>
                 </div>
               </div>
@@ -205,8 +265,8 @@ export default function CampaignDetail() {
                   onClick={() => {
                     if (!isAuthenticated) {
                       toast({
-                        title: "Please sign in",
-                        description: "You need to be signed in to make a donation.",
+                        title: "Vui lòng đăng nhập",
+                        description: "Bạn cần đăng nhập để quyên góp.",
                         variant: "destructive",
                       });
                       return;
@@ -215,7 +275,7 @@ export default function CampaignDetail() {
                   }}
                 >
                   <Heart className="w-4 h-4 mr-2" />
-                  Donate Now
+                  Quyên góp ngay
                 </Button>
 
                 <Button
@@ -225,17 +285,17 @@ export default function CampaignDetail() {
                   disabled={shareMutation.isPending}
                 >
                   <Share className="w-4 h-4 mr-2" />
-                  Share Campaign
+                  Chia sẻ chiến dịch
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Recent Donors */}
+          {/* Nhà hảo tâm gần đây */}
           {donations && donations.length > 0 && (
             <Card>
               <CardHeader>
-                <h3 className="text-lg font-semibold text-neutral-900">Recent Donors</h3>
+                <h3 className="text-lg font-semibold text-neutral-900">Nhà hảo tâm gần đây</h3>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
@@ -249,7 +309,7 @@ export default function CampaignDetail() {
                         </div>
                         <div>
                           <div className="font-medium text-sm text-neutral-900">
-                            {donation.anonymous ? 'Anonymous' : `${donation.user.firstName} ${donation.user.lastName}`}
+                            {donation.anonymous ? 'Ẩn danh' : `${donation.user.firstName} ${donation.user.lastName}`}
                           </div>
                           <div className="text-xs text-neutral-600">
                             {new Date(donation.createdAt).toLocaleDateString()}
@@ -257,7 +317,7 @@ export default function CampaignDetail() {
                         </div>
                       </div>
                       <div className="font-semibold text-primary">
-                        ${Math.round(parseFloat(donation.amount))}
+                        {Math.round(parseFloat(donation.amount)).toLocaleString()}₫
                       </div>
                     </div>
                   ))}

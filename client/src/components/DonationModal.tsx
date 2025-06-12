@@ -27,8 +27,60 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // const donationMutation = useMutation({
+  //   mutationFn: async (data: { campaignId: number; amount: number; type: string; anonymous: boolean }) => {
+  //     const response = await apiRequest('POST', '/api/donations', data);
+  //     return response.json();
+  //   },
+  //   onSuccess: () => {
+  //     toast({
+  //       title: "Thank you for your donation!",
+  //       description: "Your donation has been processed successfully. You will receive a confirmation email shortly.",
+  //     });
+  //     queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaign.id}`] });
+  //     queryClient.invalidateQueries({ queryKey: [`/api/donations/campaign/${campaign.id}`] });
+  //     queryClient.invalidateQueries({ queryKey: ["/api/donations/user/me"] });
+  //     queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+  //     onClose();
+  //     setAmount("");
+  //     setDonationType("money");
+  //     setAnonymous(false);
+  //   },
+  //   onError: (error) => {
+  //     toast({
+  //       title: "Donation failed",
+  //       description: "There was an error processing your donation. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   },
+  // });
+
+  // const handleQuickAmount = (value: number) => {
+  //   setAmount(value.toString());
+  // };
+
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+    
+  //   const donationAmount = parseFloat(amount);
+  //   if (isNaN(donationAmount) || donationAmount <= 0) {
+  //     toast({
+  //       title: "Invalid amount",
+  //       description: "Please enter a valid donation amount greater than 0.",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
+
+  //   donationMutation.mutate({
+  //     campaignId: campaign.id,
+  //     amount: donationAmount,
+  //     type: donationType,
+  //     anonymous,
+  //   });
+  // };
   const donationMutation = useMutation({
-    mutationFn: async (data: { campaignId: number; amount: number; type: string; anonymous: boolean }) => {
+    mutationFn: async (data: { campaignId: number; amount: string; type: string; anonymous: boolean }) => {
       const response = await apiRequest('POST', '/api/donations', data);
       return response.json();
     },
@@ -61,7 +113,7 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const donationAmount = parseFloat(amount);
     if (isNaN(donationAmount) || donationAmount <= 0) {
       toast({
@@ -74,7 +126,7 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
 
     donationMutation.mutate({
       campaignId: campaign.id,
-      amount: donationAmount,
+      amount: amount, // truyền string
       type: donationType,
       anonymous,
     });

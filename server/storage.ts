@@ -7,6 +7,7 @@ import {
   adminLogs,
   campaignUpdates,
   categories,
+  campaignExtendRequests,
   type User,
   type InsertUser,
   type Organization,
@@ -23,6 +24,8 @@ import {
   type InsertCampaignUpdate,
   type Category,
   type InsertCategory,
+  type CampaignExtendRequest,
+  type InsertCampaignExtendRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, sql, count } from "drizzle-orm";
@@ -73,6 +76,14 @@ export interface IStorage {
   // Campaign update operations
   createCampaignUpdate(update: InsertCampaignUpdate): Promise<CampaignUpdate>;
   getCampaignUpdates(campaignId: number): Promise<CampaignUpdate[]>;
+
+  // Extend request operations
+  createCampaignExtendRequest(req: InsertCampaignExtendRequest): Promise<CampaignExtendRequest>;
+  getCampaignExtendRequests(filter?: { status?: string }): Promise<CampaignExtendRequest[]>;
+  getCampaignExtendRequest(id: number): Promise<CampaignExtendRequest | undefined>;
+  extendCampaignDeadline(campaignId: number, days: number): Promise<void>;
+  extendCampaignTarget(campaignId: number, newTarget: string): Promise<void>;
+  updateCampaignExtendRequestStatus(id: number, status: string, extra: { adminId?: number, reviewedAt?: Date, adminNote?: string }): Promise<void>;
 
   // Statistics
   getPlatformStats(): Promise<{
@@ -236,13 +247,13 @@ export class DatabaseStorage implements IStorage {
   // Donation operations
   async createDonation(insertDonation: InsertDonation): Promise<Donation> {
     const [donation] = await db.insert(donations).values(insertDonation).returning();
-    
+
     // Update campaign raised amount
     const totalResult = await db
       .select({ total: sql<string>`sum(${donations.amount})` })
       .from(donations)
       .where(eq(donations.campaignId, insertDonation.campaignId));
-    
+
     if (totalResult[0]?.total) {
       await this.updateCampaignRaised(insertDonation.campaignId, totalResult[0].total);
     }
@@ -341,6 +352,61 @@ export class DatabaseStorage implements IStorage {
       .from(campaignUpdates)
       .where(eq(campaignUpdates.campaignId, campaignId))
       .orderBy(desc(campaignUpdates.createdAt));
+  }
+
+  // ====== EXTEND REQUEST ======
+  async createCampaignExtendRequest(req: InsertCampaignExtendRequest): Promise<CampaignExtendRequest> {
+    const [result] = await db.insert(campaignExtendRequests).values(req).returning();
+    return result;
+  }
+
+  async getCampaignExtendRequests(filter?: { status?: string }): Promise<CampaignExtendRequest[]> {
+    if (filter?.status) {
+      return await db
+        .select()
+        .from(campaignExtendRequests)
+        .where(eq(campaignExtendRequests.status, filter.status))
+        .orderBy(desc(campaignExtendRequests.createdAt));
+    } else {
+      return await db
+        .select()
+        .from(campaignExtendRequests)
+        .orderBy(desc(campaignExtendRequests.createdAt));
+    }
+  }
+
+  async getCampaignExtendRequest(id: number): Promise<CampaignExtendRequest | undefined> {
+    const [result] = await db.select().from(campaignExtendRequests).where(eq(campaignExtendRequests.id, id));
+    return result;
+  }
+
+  async extendCampaignDeadline(campaignId: number, days: number): Promise<void> {
+    // Lấy deadline hiện tại
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, campaignId));
+    if (!campaign) throw new Error("Campaign not found");
+    const currentDeadline = campaign.deadline as Date;
+    const newDeadline = new Date(currentDeadline);
+    newDeadline.setDate(newDeadline.getDate() + days);
+    await db.update(campaigns).set({ deadline: newDeadline }).where(eq(campaigns.id, campaignId));
+  }
+
+  async extendCampaignTarget(campaignId: number, newTarget: string): Promise<void> {
+    await db.update(campaigns).set({ target: newTarget }).where(eq(campaigns.id, campaignId));
+  }
+
+  async updateCampaignExtendRequestStatus(
+    id: number,
+    status: string,
+    extra: { adminId?: number, reviewedAt?: Date, adminNote?: string }
+  ): Promise<void> {
+    await db.update(campaignExtendRequests)
+      .set({
+        status,
+        adminId: extra.adminId,
+        reviewedAt: extra.reviewedAt,
+        adminNote: extra.adminNote,
+      })
+      .where(eq(campaignExtendRequests.id, id));
   }
 
   // Statistics

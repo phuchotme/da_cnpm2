@@ -2,10 +2,11 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+app.use("/uploads", express.static("uploads"));
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -58,7 +59,7 @@ app.use((req, res, next) => {
 
   // Use PORT environment variable or fallback to 5000
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  
+
   const startServer = (portToTry: number) => {
     server.listen({
       port: portToTry,
@@ -74,6 +75,6 @@ app.use((req, res, next) => {
       }
     });
   };
-  
+
   startServer(port);
 })();

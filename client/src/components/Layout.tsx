@@ -26,13 +26,13 @@ export default function Layout({ children }: LayoutProps) {
   const NavigationLinks = () => (
     <>
       <Link href="/" className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
-        Home
+        Trang chủ
       </Link>
       <Link href="/campaigns" className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
-        Campaigns
+        Chiến dịch
       </Link>
       <Link href="/organizations" className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
-        Organizations
+        Tổ chức
       </Link>
     </>
   );
@@ -59,10 +59,10 @@ export default function Layout({ children }: LayoutProps) {
               {!isAuthenticated ? (
                 <>
                   <Button variant="ghost" onClick={() => setLocation('/login')}>
-                    Sign In
+                    Đăng nhập
                   </Button>
                   <Button onClick={() => setLocation('/register')}>
-                    Get Started
+                    Đăng ký
                   </Button>
                 </>
               ) : (
@@ -80,28 +80,28 @@ export default function Layout({ children }: LayoutProps) {
                       <DropdownMenuContent align="end" className="w-48">
                         {user?.role === 'admin' && (
                           <DropdownMenuItem onClick={() => setLocation('/admin')}>
-                            Admin Dashboard
+                            Quản trị viên
                           </DropdownMenuItem>
                         )}
                         {user?.role === 'organization' && (
                           <DropdownMenuItem onClick={() => setLocation('/org-dashboard')}>
-                            Organization Dashboard
+                            Bảng điều khiển tổ chức
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => setLocation('/dashboard')}>
-                          My Dashboard
+                          Hồ sơ của tôi
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setLocation('/my-donations')}>
-                          My Donations
-                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem onClick={() => setLocation('/my-donations')}>
+                          Quyên góp của tôi
+                        </DropdownMenuItem> */}
                         {user?.role === 'user' && (
                           <DropdownMenuItem onClick={() => setLocation('/apply-organization')}>
-                            Become Organization
+                            Trở thành tổ chức
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                           <LogOut className="w-4 h-4 mr-2" />
-                          Sign Out
+                          Đăng xuất
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -120,10 +120,10 @@ export default function Layout({ children }: LayoutProps) {
                           <NavigationLinks />
                           <hr />
                           <Button variant="ghost" onClick={() => setLocation('/dashboard')}>
-                            My Dashboard
+                            Bảng điều khiển của tôi
                           </Button>
                           <Button variant="ghost" onClick={handleLogout} className="text-red-600">
-                            Sign Out
+                            Đăng xuất
                           </Button>
                         </div>
                       </SheetContent>
@@ -149,40 +149,40 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="text-xl font-bold">CharityConnect</span>
               </div>
               <p className="text-neutral-400 mb-4">
-                Connecting hearts and causes through transparent, verified charitable giving.
+                Kết nối trái tim và những mục tiêu thông qua hoạt động từ thiện minh bạch, xác thực.
               </p>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">For Donors</h3>
+              <h3 className="font-semibold mb-4">Dành cho nhà hảo tâm</h3>
               <ul className="space-y-2 text-neutral-400">
-                <li><Link href="/campaigns" className="hover:text-white transition-colors">Browse Campaigns</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">How It Works</Link></li>
-                <li><Link href="/my-donations" className="hover:text-white transition-colors">Donation History</Link></li>
+                <li><Link href="/campaigns" className="hover:text-white transition-colors">Xem các chiến dịch</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Cách hoạt động</Link></li>
+                <li><Link href="/my-donations" className="hover:text-white transition-colors">Lịch sử quyên góp</Link></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">For Organizations</h3>
+              <h3 className="font-semibold mb-4">Dành cho tổ chức</h3>
               <ul className="space-y-2 text-neutral-400">
-                <li><Link href="/apply-organization" className="hover:text-white transition-colors">Apply to Join</Link></li>
-                <li><Link href="/create-campaign" className="hover:text-white transition-colors">Create Campaign</Link></li>
+                <li><Link href="/apply-organization" className="hover:text-white transition-colors">Đăng ký tham gia</Link></li>
+                <li><Link href="/create-campaign" className="hover:text-white transition-colors">Tạo chiến dịch</Link></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
+              <h3 className="font-semibold mb-4">Hỗ trợ</h3>
               <ul className="space-y-2 text-neutral-400">
-                <li><Link href="#" className="hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Contact Us</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Trung tâm trợ giúp</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Liên hệ</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Chính sách bảo mật</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Điều khoản dịch vụ</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-neutral-800 mt-12 pt-8 text-center text-neutral-400">
-            <p>&copy; 2024 CharityConnect. All rights reserved. Built with transparency and trust in mind.</p>
+            <p>&copy; 2024 CharityConnect. Đã đăng ký bản quyền. Xây dựng với sự minh bạch và tin cậy.</p>
           </div>
         </div>
       </footer>

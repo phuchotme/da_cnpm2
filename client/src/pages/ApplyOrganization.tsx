@@ -16,6 +16,7 @@ export default function ApplyOrganization() {
     description: "",
     documents: [] as string[],
   });
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -49,9 +50,41 @@ export default function ApplyOrganization() {
     });
   };
 
+  // Upload nhiều file cùng lúc
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    setUploading(true);
+    const data = new FormData();
+    for (const file of Array.from(e.target.files)) {
+      data.append("files", file); // key phải là "files"
+    }
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+        body: data,
+      });
+      const result = await res.json();
+      if (result.urls && Array.isArray(result.urls)) {
+        setFormData((prev) => ({
+          ...prev,
+          documents: [...prev.documents, ...result.urls],
+        }));
+      }
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: "Could not upload files.",
+        variant: "destructive",
+      });
+    }
+    setUploading(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.name.trim() || !formData.description.trim()) {
       toast({
         title: "Please fill in all fields",
@@ -60,7 +93,6 @@ export default function ApplyOrganization() {
       });
       return;
     }
-
     createOrganizationMutation.mutate(formData);
   };
 
@@ -120,9 +152,28 @@ export default function ApplyOrganization() {
                 <p className="text-sm text-gray-600 mb-2">
                   Upload supporting documents (registration certificates, tax-exempt status, etc.)
                 </p>
-                <p className="text-xs text-gray-500">
-                  Document upload functionality will be available soon. For now, please mention your available documents in the description.
-                </p>
+                <Input
+                  type="file"
+                  multiple
+                  accept="image/*,application/pdf"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="mx-auto mt-2"
+                />
+                {uploading && (
+                  <p className="text-xs text-blue-500 mt-2">Uploading...</p>
+                )}
+                {formData.documents.length > 0 && (
+                  <ul className="mt-2 text-xs text-green-700 text-left">
+                    {formData.documents.map((url, idx) => (
+                      <li key={idx}>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
+                          {url}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
 
@@ -164,9 +215,9 @@ export default function ApplyOrganization() {
               </Button>
               <Button
                 type="submit"
-                disabled={createOrganizationMutation.isPending}
+                disabled={createOrganizationMutation.isPending || uploading}
               >
-                {createOrganizationMutation.isPending ? "Submitting..." : "Submit Application"}
+                {createOrganizationMutation.isPending ? "Submitting..." : uploading ? "Uploading..." : "Submit Application"}
               </Button>
             </div>
           </form>

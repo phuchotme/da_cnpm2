@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Building, Heart, CheckCircle, Flag, AlertTriangle, Check, X } from "lucide-react";
+import { Building, Heart, CheckCircle, Flag, AlertTriangle, Check, X, Eye } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { useState } from "react";
 
@@ -14,7 +14,8 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [actionReason, setActionReason] = useState("");
-  const [selectedItem, setSelectedItem] = useState<{ id: number; type: string; action: string } | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<any | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
 
   const { data: stats } = useQuery({
     queryKey: ["/api/stats"],
@@ -48,6 +49,7 @@ export default function AdminDashboard() {
     },
   });
 
+  // Mutation cho tổ chức
   const organizationActionMutation = useMutation({
     mutationFn: async ({ id, action, reason }: { id: number; action: 'approve' | 'reject'; reason: string }) => {
       const response = await apiRequest('PUT', `/api/admin/organizations/${id}/${action}`, { reason });
@@ -59,20 +61,22 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
         title: "Success",
-        description: `Organization ${selectedItem?.action === 'approve' ? 'approved' : 'rejected'} successfully.`,
+        description: `Organization ${actionType === 'approve' ? 'approved' : 'rejected'} successfully.`,
       });
-      setSelectedItem(null);
+      setSelectedOrg(null);
       setActionReason("");
+      setActionType(null);
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: `Failed to ${selectedItem?.action} organization.`,
+        description: `Failed to ${actionType} organization.`,
         variant: "destructive",
       });
     },
   });
 
+  // Mutation cho campaign
   const campaignActionMutation = useMutation({
     mutationFn: async ({ id, action, reason }: { id: number; action: 'approve' | 'reject'; reason: string }) => {
       const response = await apiRequest('PUT', `/api/admin/campaigns/${id}/${action}`, { reason });
@@ -84,33 +88,36 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
         title: "Success",
-        description: `Campaign ${selectedItem?.action === 'approve' ? 'approved' : 'rejected'} successfully.`,
+        description: `Campaign ${actionType === 'approve' ? 'approved' : 'rejected'} successfully.`,
       });
-      setSelectedItem(null);
+      setSelectedOrg(null);
       setActionReason("");
+      setActionType(null);
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: `Failed to ${selectedItem?.action} campaign.`,
+        description: `Failed to ${actionType} campaign.`,
         variant: "destructive",
       });
     },
   });
 
+  // Phân biệt gọi mutation nào
   const handleAction = () => {
-    if (!selectedItem || !actionReason.trim()) return;
-
-    if (selectedItem.type === 'organization') {
-      organizationActionMutation.mutate({
-        id: selectedItem.id,
-        action: selectedItem.action as 'approve' | 'reject',
+    if (!selectedOrg || !actionReason.trim() || !actionType) return;
+    if (selectedOrg.title) {
+      // Có title => là campaign
+      campaignActionMutation.mutate({
+        id: selectedOrg.id,
+        action: actionType,
         reason: actionReason,
       });
-    } else if (selectedItem.type === 'campaign') {
-      campaignActionMutation.mutate({
-        id: selectedItem.id,
-        action: selectedItem.action as 'approve' | 'reject',
+    } else {
+      // Không có title => là organization
+      organizationActionMutation.mutate({
+        id: selectedOrg.id,
+        action: actionType,
         reason: actionReason,
       });
     }
@@ -193,89 +200,104 @@ export default function AdminDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <Dialog>
+                    <div>
+                      <Dialog open={selectedOrg?.id === org.id} onOpenChange={(open) => {
+                        if (!open) {
+                          setSelectedOrg(null);
+                          setActionReason("");
+                          setActionType(null);
+                        }
+                      }}>
                         <DialogTrigger asChild>
                           <Button
                             size="sm"
-                            className="bg-secondary text-white hover:bg-green-600"
-                            onClick={() => setSelectedItem({ id: org.id, type: 'organization', action: 'approve' })}
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedOrg(org);
+                              setActionReason("");
+                              setActionType(null);
+                            }}
                           >
-                            <Check className="w-4 h-4 mr-1" />
-                            Approve
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Detail
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Approve Organization</DialogTitle>
+                            <DialogTitle>Organization Detail</DialogTitle>
                             <DialogDescription>
-                              Are you sure you want to approve "{org.name}"? Please provide a reason for approval.
+                              <b>Name:</b> {org.name}<br />
+                              <b>Description:</b> {org.description}<br />
+                              <b>Applied at:</b> {new Date(org.createdAt).toLocaleString()}<br />
+                              <b>Supporting Documents:</b>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {org.documents && org.documents.length > 0 ? (
+                                  org.documents.map((url: string, idx: number) => {
+                                    const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                                    return isImage ? (
+                                      <a
+                                        key={idx}
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="Click to view full image"
+                                      >
+                                        <img
+                                          src={url}
+                                          alt={`Document ${idx + 1}`}
+                                          className="w-28 h-28 object-cover rounded border hover:scale-105 transition"
+                                        />
+                                      </a>
+                                    ) : (
+                                      <a
+                                        key={idx}
+                                        href={url}
+                                        download
+                                        className="flex items-center gap-1 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-blue-700 text-xs hover:bg-blue-100"
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                                        </svg>
+                                        Download file {idx + 1}
+                                      </a>
+                                    );
+                                  })
+                                ) : (
+                                  <span className="text-xs text-neutral-500">No documents uploaded.</span>
+                                )}
+                              </div>
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="space-y-4">
+                          <div className="space-y-4 mt-4">
                             <div>
-                              <Label htmlFor="reason">Reason for approval</Label>
+                              <Label htmlFor="reason">Reason</Label>
                               <Textarea
                                 id="reason"
-                                placeholder="Organization meets all requirements..."
+                                placeholder="Enter reason for approval or rejection..."
                                 value={actionReason}
                                 onChange={(e) => setActionReason(e.target.value)}
                               />
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setSelectedItem(null)}>
-                              Cancel
-                            </Button>
-                            <Button
-                              onClick={handleAction}
-                              disabled={!actionReason.trim() || organizationActionMutation.isPending}
-                            >
-                              {organizationActionMutation.isPending ? "Approving..." : "Approve"}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setSelectedItem({ id: org.id, type: 'organization', action: 'reject' })}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Reject Organization</DialogTitle>
-                            <DialogDescription>
-                              Are you sure you want to reject "{org.name}"? Please provide a reason for rejection.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="reason">Reason for rejection</Label>
-                              <Textarea
-                                id="reason"
-                                placeholder="Missing required documentation..."
-                                value={actionReason}
-                                onChange={(e) => setActionReason(e.target.value)}
-                              />
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setSelectedItem(null)}>
-                              Cancel
-                            </Button>
                             <Button
                               variant="destructive"
-                              onClick={handleAction}
+                              onClick={() => {
+                                setActionType("reject");
+                                setTimeout(handleAction, 0);
+                              }}
                               disabled={!actionReason.trim() || organizationActionMutation.isPending}
                             >
-                              {organizationActionMutation.isPending ? "Rejecting..." : "Reject"}
+                              {organizationActionMutation.isPending && actionType === "reject" ? "Rejecting..." : "Reject"}
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setActionType("approve");
+                                setTimeout(handleAction, 0);
+                              }}
+                              disabled={!actionReason.trim() || organizationActionMutation.isPending}
+                            >
+                              {organizationActionMutation.isPending && actionType === "approve" ? "Approving..." : "Approve"}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
@@ -303,10 +325,9 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {adminLogs.slice(0, 10).map((log: any) => (
                   <div key={log.id} className="flex items-start p-4 bg-neutral-50 rounded-lg">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 mt-1 ${
-                      log.actionType.includes('approve') ? 'bg-secondary' :
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 mt-1 ${log.actionType.includes('approve') ? 'bg-secondary' :
                       log.actionType.includes('reject') ? 'bg-red-500' : 'bg-primary'
-                    }`}>
+                      }`}>
                       {log.actionType.includes('approve') ? (
                         <Check className="w-4 h-4 text-white" />
                       ) : log.actionType.includes('reject') ? (
@@ -365,89 +386,107 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Dialog>
+                  <div>
+                    <Dialog open={selectedOrg?.id === campaign.id} onOpenChange={(open) => {
+                      if (!open) {
+                        setSelectedOrg(null);
+                        setActionReason("");
+                        setActionType(null);
+                      }
+                    }}>
                       <DialogTrigger asChild>
                         <Button
                           size="sm"
-                          className="bg-secondary text-white hover:bg-green-600"
-                          onClick={() => setSelectedItem({ id: campaign.id, type: 'campaign', action: 'approve' })}
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedOrg(campaign);
+                            setActionReason("");
+                            setActionType(null);
+                          }}
                         >
-                          <Check className="w-4 h-4 mr-1" />
-                          Approve
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Detail
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Approve Campaign</DialogTitle>
+                          <DialogTitle>Campaign Detail</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to approve "{campaign.title}"? Please provide a reason for approval.
+                            <b>Title:</b> {campaign.title}<br />
+                            <b>Description:</b> {campaign.description}<br />
+                            <b>Target:</b> ${Math.round(parseFloat(campaign.target))}<br />
+                            <b>Created at:</b> {new Date(campaign.createdAt).toLocaleString()}<br />
+                            <b>Organization:</b> {campaign.organization.name}<br />
+                            <b>Org Description:</b> {campaign.organization.description}<br />
+                            <b>Org Documents:</b>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {campaign.organization.documents && campaign.organization.documents.length > 0 ? (
+                                campaign.organization.documents.map((url: string, idx: number) => {
+                                  const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                                  return isImage ? (
+                                    <a
+                                      key={idx}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title="Click to view full image"
+                                    >
+                                      <img
+                                        src={url}
+                                        alt={`Document ${idx + 1}`}
+                                        className="w-28 h-28 object-cover rounded border hover:scale-105 transition"
+                                      />
+                                    </a>
+                                  ) : (
+                                    <a
+                                      key={idx}
+                                      href={url}
+                                      download
+                                      className="flex items-center gap-1 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-blue-700 text-xs hover:bg-blue-100"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                                      </svg>
+                                      Download file {idx + 1}
+                                    </a>
+                                  );
+                                })
+                              ) : (
+                                <span className="text-xs text-neutral-500">No documents uploaded.</span>
+                              )}
+                            </div>
                           </DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-4">
+                        <div className="space-y-4 mt-4">
                           <div>
-                            <Label htmlFor="reason">Reason for approval</Label>
+                            <Label htmlFor="reason">Reason</Label>
                             <Textarea
                               id="reason"
-                              placeholder="Campaign meets all guidelines..."
+                              placeholder="Enter reason for approval or rejection..."
                               value={actionReason}
                               onChange={(e) => setActionReason(e.target.value)}
                             />
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setSelectedItem(null)}>
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleAction}
-                            disabled={!actionReason.trim() || campaignActionMutation.isPending}
-                          >
-                            {campaignActionMutation.isPending ? "Approving..." : "Approve"}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => setSelectedItem({ id: campaign.id, type: 'campaign', action: 'reject' })}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Reject
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Reject Campaign</DialogTitle>
-                          <DialogDescription>
-                            Are you sure you want to reject "{campaign.title}"? Please provide a reason for rejection.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="reason">Reason for rejection</Label>
-                            <Textarea
-                              id="reason"
-                              placeholder="Unclear funding goals..."
-                              value={actionReason}
-                              onChange={(e) => setActionReason(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setSelectedItem(null)}>
-                            Cancel
-                          </Button>
                           <Button
                             variant="destructive"
-                            onClick={handleAction}
+                            onClick={() => {
+                              setActionType("reject");
+                              setTimeout(handleAction, 0);
+                            }}
                             disabled={!actionReason.trim() || campaignActionMutation.isPending}
                           >
-                            {campaignActionMutation.isPending ? "Rejecting..." : "Reject"}
+                            {campaignActionMutation.isPending && actionType === "reject" ? "Rejecting..." : "Reject"}
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setActionType("approve");
+                              setTimeout(handleAction, 0);
+                            }}
+                            disabled={!actionReason.trim() || campaignActionMutation.isPending}
+                          >
+                            {campaignActionMutation.isPending && actionType === "approve" ? "Approving..." : "Approve"}
                           </Button>
                         </DialogFooter>
                       </DialogContent>

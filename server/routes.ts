@@ -1,16 +1,18 @@
 import type { Express } from "express";
+import path from "path";
+import multer from "multer";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { 
-  authenticateToken, 
-  requireRole, 
-  hashPassword, 
-  verifyPassword, 
+import {
+  authenticateToken,
+  requireRole,
+  hashPassword,
+  verifyPassword,
   generateToken,
-  type AuthRequest 
+  type AuthRequest
 } from "./auth";
-import { 
-  insertUserSchema, 
+import {
+  insertUserSchema,
   loginSchema,
   insertOrganizationSchema,
   insertCampaignSchema,
@@ -20,6 +22,19 @@ import {
   insertCampaignUpdateSchema,
   insertCategorySchema
 } from "@shared/schema";
+
+// Multer config for file uploads
+const storageMulter = multer.diskStorage({
+  destination: "uploads/",
+  filename: (req, file, cb) => {
+    // Lấy đuôi file gốc
+    const ext = path.extname(file.originalname);
+    // Đặt tên file: timestamp-random + đuôi gốc
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    cb(null, uniqueName);
+  },
+});
+const upload = multer({ storage: storageMulter });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize default categories
@@ -36,11 +51,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Error initializing categories:', error);
   }
 
+  // File upload route
+  app.post("/api/upload", upload.array("files"), (req, res) => {
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
+    }
+    // Trả về mảng đường dẫn file
+    const urls = files.map(file => `/uploads/${file.filename}`);
+    res.json({ urls });
+  });
+
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
@@ -49,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password
       const hashedPassword = await hashPassword(validatedData.password);
-      
+
       // Create user
       const user = await storage.createUser({
         ...validatedData,
@@ -72,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const validatedData = loginSchema.parse(req.body);
-      
+
       // Find user
       const user = await storage.getUserByEmail(validatedData.email);
       if (!user) {
@@ -154,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const organization = await storage.getOrganization(id);
-      
+
       if (!organization) {
         return res.status(404).json({ message: "Organization not found" });
       }
@@ -169,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/organizations/user/me", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const organization = await storage.getOrganizationByUserId(req.user!.id);
-      
+
       if (!organization) {
         return res.status(404).json({ message: "Organization not found" });
       }
@@ -216,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const campaign = await storage.getCampaignWithDetails(id);
-      
+
       if (!campaign) {
         return res.status(404).json({ message: "Campaign not found" });
       }
@@ -333,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const validatedData = insertCampaignUpdateSchema.parse(req.body);
-      
+
       // Verify the campaign belongs to this organization
       const campaign = await storage.getCampaign(validatedData.campaignId);
       if (!campaign || campaign.organizationId !== organization.id) {
@@ -374,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       await storage.updateOrganizationStatus(id, 'approved');
-      
+
       // Update user role to organization
       const org = await storage.getOrganization(id);
       if (org) {

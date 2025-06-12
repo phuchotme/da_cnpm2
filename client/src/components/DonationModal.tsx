@@ -1,3 +1,199 @@
+// import { useState } from "react";
+// import { useMutation, useQueryClient } from "@tanstack/react-query";
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import { useToast } from "@/hooks/use-toast";
+// import { DollarSign, Lock } from "lucide-react";
+// import { apiRequest } from "@/lib/api";
+
+// interface DonationModalProps {
+//   isOpen: boolean;
+//   onClose: () => void;
+//   campaign: {
+//     id: number;
+//     title: string;
+//     description: string;
+//   };
+// }
+
+// export default function DonationModal({ isOpen, onClose, campaign }: DonationModalProps) {
+//   const [amount, setAmount] = useState("");
+//   const [donationType, setDonationType] = useState("money");
+//   const [anonymous, setAnonymous] = useState(false);
+//   const { toast } = useToast();
+//   const queryClient = useQueryClient();
+
+//   const donationMutation = useMutation({
+//     mutationFn: async (data: { campaignId: number; amount: string; type: string; anonymous: boolean }) => {
+//       const response = await apiRequest('POST', '/api/donations', data);
+//       return response.json();
+//     },
+//     onSuccess: () => {
+//       toast({
+//         title: "Thank you for your donation!",
+//         description: "Your donation has been processed successfully. You will receive a confirmation email shortly.",
+//       });
+//       queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaign.id}`] });
+//       queryClient.invalidateQueries({ queryKey: [`/api/donations/campaign/${campaign.id}`] });
+//       queryClient.invalidateQueries({ queryKey: ["/api/donations/user/me"] });
+//       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+//       onClose();
+//       setAmount("");
+//       setDonationType("money");
+//       setAnonymous(false);
+//     },
+//     onError: (error) => {
+//       toast({
+//         title: "Donation failed",
+//         description: "There was an error processing your donation. Please try again.",
+//         variant: "destructive",
+//       });
+//     },
+//   });
+
+//   const handleQuickAmount = (value: number) => {
+//     setAmount(value.toString());
+//   };
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault();
+
+//     const donationAmount = parseFloat(amount);
+//     if (isNaN(donationAmount) || donationAmount <= 0) {
+//       toast({
+//         title: "Invalid amount",
+//         description: "Please enter a valid donation amount greater than 0.",
+//         variant: "destructive",
+//       });
+//       return;
+//     }
+
+//     donationMutation.mutate({
+//       campaignId: campaign.id,
+//       amount: amount, // truyền string
+//       type: donationType,
+//       anonymous,
+//     });
+//   };
+
+//   return (
+//     <Dialog open={isOpen} onOpenChange={onClose}>
+//       <DialogContent className="max-w-md">
+//         <DialogHeader>
+//           <DialogTitle className="flex items-center">
+//             <DollarSign className="w-5 h-5 mr-2 text-primary" />
+//             Make a Donation
+//           </DialogTitle>
+//           <DialogDescription>Support this campaign and make a difference</DialogDescription>
+//         </DialogHeader>
+
+//         <div className="mb-6">
+//           <h4 className="font-medium text-neutral-900 mb-2">{campaign.title}</h4>
+//           <p className="text-sm text-neutral-600">{campaign.description.substring(0, 100)}...</p>
+//         </div>
+
+//         <form onSubmit={handleSubmit} className="space-y-6">
+//           <div>
+//             <Label className="text-sm font-medium text-neutral-700 mb-2 block">Donation Amount</Label>
+//             <div className="grid grid-cols-3 gap-2 mb-3">
+//               <Button
+//                 type="button"
+//                 variant="outline"
+//                 onClick={() => handleQuickAmount(25)}
+//                 className="py-2 px-4 text-sm"
+//               >
+//                 $25
+//               </Button>
+//               <Button
+//                 type="button"
+//                 variant="outline"
+//                 onClick={() => handleQuickAmount(50)}
+//                 className="py-2 px-4 text-sm"
+//               >
+//                 $50
+//               </Button>
+//               <Button
+//                 type="button"
+//                 variant="outline"
+//                 onClick={() => handleQuickAmount(100)}
+//                 className="py-2 px-4 text-sm"
+//               >
+//                 $100
+//               </Button>
+//             </div>
+//             <div className="relative">
+//               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4" />
+//               <Input
+//                 type="number"
+//                 min="0.01"
+//                 step="0.01"
+//                 value={amount}
+//                 onChange={(e) => setAmount(e.target.value)}
+//                 placeholder="0.00"
+//                 className="pl-10"
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <div>
+//             <Label className="text-sm font-medium text-neutral-700 mb-2 block">Donation Type</Label>
+//             <RadioGroup value={donationType} onValueChange={setDonationType}>
+//               <div className="grid grid-cols-2 gap-2">
+//                 <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-neutral-50">
+//                   <RadioGroupItem value="money" className="mr-2" />
+//                   <div>
+//                     <div className="font-medium text-sm">Money</div>
+//                     <div className="text-xs text-neutral-600">Monetary donation</div>
+//                   </div>
+//                 </label>
+//                 <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-neutral-50">
+//                   <RadioGroupItem value="goods" className="mr-2" />
+//                   <div>
+//                     <div className="font-medium text-sm">Goods</div>
+//                     <div className="text-xs text-neutral-600">Physical items</div>
+//                   </div>
+//                 </label>
+//               </div>
+//             </RadioGroup>
+//           </div>
+
+//           <div className="flex items-center space-x-2">
+//             <Checkbox
+//               id="anonymous"
+//               checked={anonymous}
+//               onCheckedChange={(checked) => setAnonymous(checked as boolean)}
+//             />
+//             <Label htmlFor="anonymous" className="text-sm text-neutral-600">
+//               Make this donation anonymous
+//             </Label>
+//           </div>
+
+//           <Button
+//             type="submit"
+//             className="w-full"
+//             disabled={donationMutation.isPending}
+//           >
+//             {donationMutation.isPending ? "Processing..." : "Donate Now"}
+//           </Button>
+//         </form>
+
+//         <div className="text-center mt-4">
+//           <p className="text-xs text-neutral-500 flex items-center justify-center">
+//             <Lock className="w-3 h-3 mr-1" />
+//             Secure payment processing with 100% transparency guarantee
+//           </p>
+//         </div>
+//       </DialogContent>
+//     </Dialog>
+//   );
+// }
+
+
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,58 +223,6 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // const donationMutation = useMutation({
-  //   mutationFn: async (data: { campaignId: number; amount: number; type: string; anonymous: boolean }) => {
-  //     const response = await apiRequest('POST', '/api/donations', data);
-  //     return response.json();
-  //   },
-  //   onSuccess: () => {
-  //     toast({
-  //       title: "Thank you for your donation!",
-  //       description: "Your donation has been processed successfully. You will receive a confirmation email shortly.",
-  //     });
-  //     queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaign.id}`] });
-  //     queryClient.invalidateQueries({ queryKey: [`/api/donations/campaign/${campaign.id}`] });
-  //     queryClient.invalidateQueries({ queryKey: ["/api/donations/user/me"] });
-  //     queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-  //     onClose();
-  //     setAmount("");
-  //     setDonationType("money");
-  //     setAnonymous(false);
-  //   },
-  //   onError: (error) => {
-  //     toast({
-  //       title: "Donation failed",
-  //       description: "There was an error processing your donation. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   },
-  // });
-
-  // const handleQuickAmount = (value: number) => {
-  //   setAmount(value.toString());
-  // };
-
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-    
-  //   const donationAmount = parseFloat(amount);
-  //   if (isNaN(donationAmount) || donationAmount <= 0) {
-  //     toast({
-  //       title: "Invalid amount",
-  //       description: "Please enter a valid donation amount greater than 0.",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
-
-  //   donationMutation.mutate({
-  //     campaignId: campaign.id,
-  //     amount: donationAmount,
-  //     type: donationType,
-  //     anonymous,
-  //   });
-  // };
   const donationMutation = useMutation({
     mutationFn: async (data: { campaignId: number; amount: string; type: string; anonymous: boolean }) => {
       const response = await apiRequest('POST', '/api/donations', data);
@@ -86,8 +230,8 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
     },
     onSuccess: () => {
       toast({
-        title: "Thank you for your donation!",
-        description: "Your donation has been processed successfully. You will receive a confirmation email shortly.",
+        title: "Cảm ơn bạn đã quyên góp!",
+        description: "Quyên góp của bạn đã được xử lý thành công. Bạn sẽ nhận được email xác nhận trong thời gian ngắn.",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaign.id}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/donations/campaign/${campaign.id}`] });
@@ -100,8 +244,8 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
     },
     onError: (error) => {
       toast({
-        title: "Donation failed",
-        description: "There was an error processing your donation. Please try again.",
+        title: "Quyên góp thất bại",
+        description: "Có lỗi xảy ra khi xử lý quyên góp. Vui lòng thử lại.",
         variant: "destructive",
       });
     },
@@ -117,8 +261,8 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
     const donationAmount = parseFloat(amount);
     if (isNaN(donationAmount) || donationAmount <= 0) {
       toast({
-        title: "Invalid amount",
-        description: "Please enter a valid donation amount greater than 0.",
+        title: "Số tiền không hợp lệ",
+        description: "Vui lòng nhập số tiền hợp lệ lớn hơn 0.",
         variant: "destructive",
       });
       return;
@@ -138,9 +282,9 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <DollarSign className="w-5 h-5 mr-2 text-primary" />
-            Make a Donation
+            Quyên góp cho chiến dịch
           </DialogTitle>
-          <DialogDescription>Support this campaign and make a difference</DialogDescription>
+          <DialogDescription>Hãy ủng hộ chiến dịch này để tạo ra sự thay đổi tích cực</DialogDescription>
         </DialogHeader>
 
         <div className="mb-6">
@@ -150,42 +294,42 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <Label className="text-sm font-medium text-neutral-700 mb-2 block">Donation Amount</Label>
+            <Label className="text-sm font-medium text-neutral-700 mb-2 block">Số tiền quyên góp</Label>
             <div className="grid grid-cols-3 gap-2 mb-3">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => handleQuickAmount(25)}
+                onClick={() => handleQuickAmount(25000)}
                 className="py-2 px-4 text-sm"
               >
-                $25
+                25.000₫
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => handleQuickAmount(50)}
+                onClick={() => handleQuickAmount(50000)}
                 className="py-2 px-4 text-sm"
               >
-                $50
+                50.000₫
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => handleQuickAmount(100)}
+                onClick={() => handleQuickAmount(100000)}
                 className="py-2 px-4 text-sm"
               >
-                $100
+                100.000₫
               </Button>
             </div>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4" />
               <Input
                 type="number"
-                min="0.01"
-                step="0.01"
+                min="1000"
+                step="1000"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                placeholder="Nhập số tiền (VND)"
                 className="pl-10"
                 required
               />
@@ -193,21 +337,21 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-neutral-700 mb-2 block">Donation Type</Label>
+            <Label className="text-sm font-medium text-neutral-700 mb-2 block">Hình thức quyên góp</Label>
             <RadioGroup value={donationType} onValueChange={setDonationType}>
               <div className="grid grid-cols-2 gap-2">
                 <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-neutral-50">
                   <RadioGroupItem value="money" className="mr-2" />
                   <div>
-                    <div className="font-medium text-sm">Money</div>
-                    <div className="text-xs text-neutral-600">Monetary donation</div>
+                    <div className="font-medium text-sm">Tiền mặt</div>
+                    <div className="text-xs text-neutral-600">Quyên góp bằng tiền</div>
                   </div>
                 </label>
                 <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-neutral-50">
                   <RadioGroupItem value="goods" className="mr-2" />
                   <div>
-                    <div className="font-medium text-sm">Goods</div>
-                    <div className="text-xs text-neutral-600">Physical items</div>
+                    <div className="font-medium text-sm">Hiện vật</div>
+                    <div className="text-xs text-neutral-600">Quyên góp hiện vật</div>
                   </div>
                 </label>
               </div>
@@ -221,7 +365,7 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
               onCheckedChange={(checked) => setAnonymous(checked as boolean)}
             />
             <Label htmlFor="anonymous" className="text-sm text-neutral-600">
-              Make this donation anonymous
+              Ẩn danh khi quyên góp
             </Label>
           </div>
 
@@ -230,14 +374,14 @@ export default function DonationModal({ isOpen, onClose, campaign }: DonationMod
             className="w-full"
             disabled={donationMutation.isPending}
           >
-            {donationMutation.isPending ? "Processing..." : "Donate Now"}
+            {donationMutation.isPending ? "Đang xử lý..." : "Quyên góp ngay"}
           </Button>
         </form>
 
         <div className="text-center mt-4">
           <p className="text-xs text-neutral-500 flex items-center justify-center">
             <Lock className="w-3 h-3 mr-1" />
-            Secure payment processing with 100% transparency guarantee
+            Thanh toán an toàn, minh bạch 100%
           </p>
         </div>
       </DialogContent>

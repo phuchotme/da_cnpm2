@@ -28,16 +28,16 @@ export default function ApplyOrganization() {
     },
     onSuccess: () => {
       toast({
-        title: "Application submitted!",
-        description: "Your organization application has been submitted for review. You will be notified once it's processed.",
+        title: "Gửi đơn thành công!",
+        description: "Đơn đăng ký tổ chức của bạn đã được gửi để xét duyệt. Bạn sẽ nhận được thông báo khi có kết quả.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/organizations/user/me"] });
       setLocation('/dashboard');
     },
     onError: (error) => {
       toast({
-        title: "Application failed",
-        description: "There was an error submitting your application. Please try again.",
+        title: "Gửi đơn thất bại",
+        description: "Có lỗi xảy ra khi gửi đơn đăng ký. Vui lòng thử lại.",
         variant: "destructive",
       });
     },
@@ -75,8 +75,8 @@ export default function ApplyOrganization() {
       }
     } catch (err) {
       toast({
-        title: "Upload failed",
-        description: "Could not upload files.",
+        title: "Tải lên thất bại",
+        description: "Không thể tải lên tệp.",
         variant: "destructive",
       });
     }
@@ -87,8 +87,8 @@ export default function ApplyOrganization() {
     e.preventDefault();
     if (!formData.name.trim() || !formData.description.trim()) {
       toast({
-        title: "Please fill in all fields",
-        description: "Organization name and description are required.",
+        title: "Vui lòng điền đầy đủ thông tin",
+        description: "Tên tổ chức và mô tả là bắt buộc.",
         variant: "destructive",
       });
       return;
@@ -101,24 +101,24 @@ export default function ApplyOrganization() {
       <div className="mb-8">
         <div className="flex items-center mb-4">
           <Building className="w-8 h-8 text-primary mr-3" />
-          <h1 className="text-3xl font-bold text-neutral-900">Apply to Become an Organization</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Đăng ký trở thành tổ chức</h1>
         </div>
         <p className="text-neutral-600">
-          Join our platform as a verified organization to create campaigns and raise funds for your cause.
+          Tham gia nền tảng của chúng tôi với tư cách là tổ chức đã xác thực để tạo chiến dịch và gây quỹ cho mục tiêu của bạn.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Organization Application</CardTitle>
+          <CardTitle>Đơn đăng ký tổ chức</CardTitle>
           <CardDescription>
-            Please provide detailed information about your organization. All applications are reviewed by our admin team.
+            Vui lòng cung cấp thông tin chi tiết về tổ chức của bạn. Tất cả đơn đăng ký sẽ được đội ngũ quản trị viên xét duyệt.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="name">Organization Name *</Label>
+              <Label htmlFor="name">Tên tổ chức *</Label>
               <Input
                 id="name"
                 name="name"
@@ -126,31 +126,31 @@ export default function ApplyOrganization() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter your organization name"
+                placeholder="Nhập tên tổ chức của bạn"
                 className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="description">Organization Description *</Label>
+              <Label htmlFor="description">Mô tả tổ chức *</Label>
               <Textarea
                 id="description"
                 name="description"
                 required
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe your organization's mission, goals, and activities. Be as detailed as possible to help our review process."
+                placeholder="Mô tả sứ mệnh, mục tiêu và hoạt động của tổ chức bạn. Vui lòng trình bày chi tiết để hỗ trợ quá trình xét duyệt."
                 rows={6}
                 className="mt-1"
               />
             </div>
 
             <div>
-              <Label>Supporting Documents</Label>
+              <Label>Tài liệu minh chứng</Label>
               <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-sm text-gray-600 mb-2">
-                  Upload supporting documents (registration certificates, tax-exempt status, etc.)
+                  Tải lên các tài liệu minh chứng (giấy phép đăng ký, giấy xác nhận miễn thuế, v.v.)
                 </p>
                 <Input
                   type="file"
@@ -161,7 +161,7 @@ export default function ApplyOrganization() {
                   className="mx-auto mt-2"
                 />
                 {uploading && (
-                  <p className="text-xs text-blue-500 mt-2">Uploading...</p>
+                  <p className="text-xs text-blue-500 mt-2">Đang tải lên...</p>
                 )}
                 {formData.documents.length > 0 && (
                   <ul className="mt-2 text-xs text-green-700 text-left">
@@ -181,10 +181,9 @@ export default function ApplyOrganization() {
               <div className="flex items-start">
                 <FileText className="w-5 h-5 text-blue-600 mr-3 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-blue-900">Application Review Process</h4>
+                  <h4 className="font-medium text-blue-900">Quy trình xét duyệt đơn</h4>
                   <p className="text-sm text-blue-700 mt-1">
-                    Our admin team will review your application within 3-5 business days. You will receive an email notification
-                    once your application is approved or if additional information is needed.
+                    Đội ngũ quản trị viên sẽ xét duyệt đơn đăng ký của bạn trong vòng 3-5 ngày làm việc. Bạn sẽ nhận được email thông báo khi đơn được duyệt hoặc cần bổ sung thông tin.
                   </p>
                 </div>
               </div>
@@ -194,12 +193,12 @@ export default function ApplyOrganization() {
               <div className="flex items-start">
                 <Building className="w-5 h-5 text-yellow-600 mr-3 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-yellow-900">Required Information</h4>
+                  <h4 className="font-medium text-yellow-900">Thông tin bắt buộc</h4>
                   <ul className="text-sm text-yellow-700 mt-1 space-y-1">
-                    <li>• Official organization registration documents</li>
-                    <li>• Tax-exempt status documentation (if applicable)</li>
-                    <li>• Clear description of your organization's mission and activities</li>
-                    <li>• Contact information for verification purposes</li>
+                    <li>• Giấy tờ đăng ký tổ chức hợp pháp</li>
+                    <li>• Ảnh chụp căn cước công dân hai mặt của người chịu trách nhiệm chính</li>
+                    <li>• Mô tả rõ ràng về sứ mệnh và hoạt động của tổ chức</li>
+                    <li>• Thông tin liên hệ để xác minh</li>
                   </ul>
                 </div>
               </div>
@@ -211,13 +210,13 @@ export default function ApplyOrganization() {
                 variant="outline"
                 onClick={() => setLocation('/dashboard')}
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 type="submit"
                 disabled={createOrganizationMutation.isPending || uploading}
               >
-                {createOrganizationMutation.isPending ? "Submitting..." : uploading ? "Uploading..." : "Submit Application"}
+                {createOrganizationMutation.isPending ? "Đang gửi..." : uploading ? "Đang tải lên..." : "Gửi đơn đăng ký"}
               </Button>
             </div>
           </form>

@@ -399,119 +399,119 @@ export default function UserDashboard() {
             {/* <h3 className="text-xl font-bold mb-4">Chỉnh sửa thông tin cá nhân</h3> */}
             {/* Thêm form chỉnh sửa ở đây */}
             {/* <div className="text-neutral-500">Form chỉnh sửa thông tin cá nhân ở đây...</div> */}
-            // ...trong phần modal chỉnh sửa thông tin cá nhân...
-<form
-  className="space-y-4"
-  onSubmit={async (e) => {
-    e.preventDefault();
-    // Lấy dữ liệu từ form
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const firstName = formData.get("firstName") as string;
-    const lastName = formData.get("lastName") as string;
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    // Nếu là tổ chức thì lấy thêm name, description
-    const orgName = formData.get("orgName") as string;
-    const orgDescription = formData.get("orgDescription") as string;
+         
+              <form
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  // Lấy dữ liệu từ form
+                  const formData = new FormData(e.currentTarget as HTMLFormElement);
+                  const firstName = formData.get("firstName") as string;
+                  const lastName = formData.get("lastName") as string;
+                  const email = formData.get("email") as string;
+                  const password = formData.get("password") as string;
+                  // Nếu là tổ chức thì lấy thêm name, description
+                  const orgName = formData.get("orgName") as string;
+                  const orgDescription = formData.get("orgDescription") as string;
 
-    // Gọi API cập nhật user
-    await fetch("/api/users/me", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        ...(password ? { password } : {}),
-      }),
-    });
+                  // Gọi API cập nhật user
+                  await fetch("/api/users/me", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      firstName,
+                      lastName,
+                      email,
+                      ...(password ? { password } : {}),
+                    }),
+                  });
 
-    // Nếu là tổ chức thì gọi API cập nhật tổ chức
-    if (user?.role === "organization") {
-      await fetch("/api/organizations/user/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: orgName,
-          description: orgDescription,
-        }),
-      });
-    }
+                  // Nếu là tổ chức thì gọi API cập nhật tổ chức
+                  if (user?.role === "organization") {
+                    await fetch("/api/organizations/user/me", {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        name: orgName,
+                        description: orgDescription,
+                      }),
+                    });
+                  }
 
-    // Đóng modal và reload lại thông tin
-    setShowEdit(false);
-    window.location.reload();
-  }}
->
-  <div>
-    <label className="block font-medium mb-1">Họ</label>
-    <input
-      name="firstName"
-      defaultValue={user?.firstName}
-      className="w-full border rounded px-3 py-2"
-      required
-    />
-  </div>
-  <div>
-    <label className="block font-medium mb-1">Tên</label>
-    <input
-      name="lastName"
-      defaultValue={user?.lastName}
-      className="w-full border rounded px-3 py-2"
-      required
-    />
-  </div>
-  <div>
-    <label className="block font-medium mb-1">Email</label>
-    <input
-      name="email"
-      type="email"
-      defaultValue={user?.email}
-      className="w-full border rounded px-3 py-2"
-      required
-    />
-  </div>
-  <div>
-    <label className="block font-medium mb-1">Mật khẩu mới (nếu muốn đổi)</label>
-    <input
-      name="password"
-      type="password"
-      className="w-full border rounded px-3 py-2"
-      placeholder="Để trống nếu không đổi"
-    />
-  </div>
-  {user?.role === "organization" && (
-    <>
-      <div>
-        <label className="block font-medium mb-1">Tên tổ chức</label>
-        <input
-          name="orgName"
-          defaultValue={user.organization?.name}
-          className="w-full border rounded px-3 py-2"
-          required
-        />
-      </div>
-      <div>
-        <label className="block font-medium mb-1">Mô tả tổ chức</label>
-        <textarea
-          name="orgDescription"
-          defaultValue={user.organization?.description}
-          className="w-full border rounded px-3 py-2"
-          rows={3}
-          required
-        />
-      </div>
-    </>
-  )}
-  <div className="flex justify-end gap-2 mt-4">
-    <Button type="button" variant="outline" onClick={() => setShowEdit(false)}>
-      Hủy
-    </Button>
-    <Button type="submit" className="bg-primary text-white">
-      Lưu thay đổi
-    </Button>
-  </div>
-</form>
+                  // Đóng modal và reload lại thông tin
+                  setShowEdit(false);
+                  window.location.reload();
+                }}
+              >
+                <div>
+                  <label className="block font-medium mb-1">Họ</label>
+                  <input
+                    name="firstName"
+                    defaultValue={user?.firstName}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Tên</label>
+                  <input
+                    name="lastName"
+                    defaultValue={user?.lastName}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    defaultValue={user?.email}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Mật khẩu mới (nếu muốn đổi)</label>
+                  <input
+                    name="password"
+                    type="password"
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="Để trống nếu không đổi"
+                  />
+                </div>
+                {user?.role === "organization" && (
+                  <>
+                    <div>
+                      <label className="block font-medium mb-1">Tên tổ chức</label>
+                      <input
+                        name="orgName"
+                        defaultValue={user.organization?.name}
+                        className="w-full border rounded px-3 py-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Mô tả tổ chức</label>
+                      <textarea
+                        name="orgDescription"
+                        defaultValue={user.organization?.description}
+                        className="w-full border rounded px-3 py-2"
+                        rows={3}
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button type="button" variant="outline" onClick={() => setShowEdit(false)}>
+                    Hủy
+                  </Button>
+                  <Button type="submit" className="bg-primary text-white">
+                    Lưu thay đổi
+                  </Button>
+                </div>
+              </form>
           </div>
         </div>
       )}

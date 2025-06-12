@@ -29,7 +29,7 @@ export default function Campaigns() {
 
   const filteredCampaigns = campaigns?.filter((campaign: any) => {
     const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         campaign.description.toLowerCase().includes(searchTerm.toLowerCase());
+      campaign.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || campaign.category.id.toString() === selectedCategory;
     return matchesSearch && matchesCategory;
   }) || [];
@@ -66,7 +66,6 @@ export default function Campaigns() {
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
               {categories?.map((category: any) => (
                 <SelectItem key={category.id} value={category.id.toString()}>
                   {category.name}

@@ -1,10 +1,10 @@
-import { 
-  pgTable, 
-  text, 
-  serial, 
-  integer, 
-  boolean, 
-  timestamp, 
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
   decimal,
   pgEnum
 } from "drizzle-orm/pg-core";
@@ -108,7 +108,12 @@ export const campaignUpdates = pgTable("campaign_updates", {
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true, successRate: true, rating: true });
-export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true, raised: true });
+export const insertCampaignSchema = createInsertSchema(campaigns)
+  .omit({ id: true, createdAt: true, raised: true })
+  .extend({
+    target: z.preprocess((val) => typeof val === "string" ? val : String(val), z.string()),
+    deadline: z.preprocess((val) => typeof val === "string" ? new Date(val) : val, z.date()),
+  });
 export const insertDonationSchema = createInsertSchema(donations).omit({ id: true, createdAt: true });
 export const insertCampaignRatingSchema = createInsertSchema(campaignRatings).omit({ id: true, createdAt: true });
 export const insertAdminLogSchema = createInsertSchema(adminLogs).omit({ id: true, createdAt: true });

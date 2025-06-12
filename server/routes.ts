@@ -1210,8 +1210,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ...existing code...
-  // Statistics routes
   app.get("/api/stats", async (req, res) => {
     try {
       const stats = await storage.getPlatformStats();
@@ -1221,6 +1219,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get statistics" });
     }
   });
+
+  //momo
+  app.get("/api/momo/check", (req, res) => {
+  // Giả lập: luôn trả về thành công nếu có transactionId
+  const { transactionId } = req.query;
+  if (transactionId) {
+    return res.json({ success: true });
+  }
+  res.json({ success: false });
+});
 
   const httpServer = createServer(app);
   return httpServer;

@@ -160,7 +160,7 @@ export default function Layout({ children }: LayoutProps) {
               <h3 className="font-semibold mb-4">Dành cho nhà hảo tâm</h3>
               <ul className="space-y-2 text-neutral-400">
                 <li><Link href="/campaigns" className="hover:text-white transition-colors">Xem các chiến dịch</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Cách hoạt động</Link></li>
+                
                 <li><Link href="/my-donations" className="hover:text-white transition-colors">Lịch sử quyên góp</Link></li>
               </ul>
             </div>

@@ -558,7 +558,7 @@ export default function UserDashboard() {
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-primary">
-                        ${Math.round(parseFloat(donation.amount))}
+                        {Math.round(parseFloat(donation.amount))} VNĐ
                       </div>
                       <Badge variant="secondary" className="text-xs">
                         {donation.type}
@@ -658,7 +658,7 @@ export default function UserDashboard() {
           <div className="space-y-4">
             <div className="text-center p-4 bg-primary/5 rounded-lg">
               <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold text-primary">${Math.round(totalDonated)}</div>
+              <div className="text-2xl font-bold text-primary">{Math.round(totalDonated).toLocaleString("vi-VN")} VNĐ</div>
               <div className="text-sm text-neutral-600">Tổng số tiền đã quyên góp</div>
             </div>
             <div className="text-center p-4 bg-secondary/5 rounded-lg">

@@ -21,14 +21,14 @@ export default function Login() {
     try {
       await login({ email, password });
       toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
+        title: "Chào mừng bạn quay lại!",
+        description: "Bạn đã đăng nhập thành công.",
       });
       setLocation("/");
     } catch (error) {
       toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
+        title: "Đăng nhập thất bại",
+        description: "Vui lòng kiểm tra lại thông tin và thử lại.",
         variant: "destructive",
       });
     }
@@ -42,24 +42,24 @@ export default function Login() {
             <Heart className="w-12 h-12 text-primary mr-3" />
             <span className="text-3xl font-bold text-neutral-900">CharityConnect</span>
           </div>
-          <h2 className="text-3xl font-bold text-neutral-900">Sign in to your account</h2>
+          <h2 className="text-3xl font-bold text-neutral-900">Đăng nhập vào tài khoản</h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Don't have an account?{" "}
+            Chưa có tài khoản?{" "}
             <Link href="/register" className="font-medium text-primary hover:text-primary/80">
-              Create one here
+              Đăng ký tại đây
             </Link>
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your email and password to access your account</CardDescription>
+            <CardTitle>Đăng nhập</CardTitle>
+            <CardDescription>Nhập email và mật khẩu để truy cập tài khoản của bạn</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email">Địa chỉ email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -73,7 +73,7 @@ export default function Login() {
               </div>
 
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mật khẩu</Label>
                 <Input
                   id="password"
                   name="password"
@@ -91,7 +91,7 @@ export default function Login() {
                 className="w-full"
                 disabled={isLoginLoading}
               >
-                {isLoginLoading ? "Signing in..." : "Sign in"}
+                {isLoginLoading ? "Đang đăng nhập..." : "Đăng nhập"}
               </Button>
             </form>
           </CardContent>

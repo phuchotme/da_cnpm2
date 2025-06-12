@@ -394,12 +394,7 @@ export default function UserDashboard() {
               aria-label="Đóng"
             >
               ×
-            </button>
-            
-            {/* <h3 className="text-xl font-bold mb-4">Chỉnh sửa thông tin cá nhân</h3> */}
-            {/* Thêm form chỉnh sửa ở đây */}
-            {/* <div className="text-neutral-500">Form chỉnh sửa thông tin cá nhân ở đây...</div> */}
-            // ...trong phần modal chỉnh sửa thông tin cá nhân...
+            </button>     
 <form
   className="space-y-4"
   onSubmit={async (e) => {

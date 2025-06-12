@@ -28,6 +28,9 @@ export default function Layout({ children }: LayoutProps) {
       <Link href="/" className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
         Trang chủ
       </Link>
+      <Link href="/about" className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
+        Về chúng tôi
+      </Link>
       <Link href="/campaigns" className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">
         Chiến dịch
       </Link>

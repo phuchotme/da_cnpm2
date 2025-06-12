@@ -21,6 +21,8 @@ import CreateCampaign from "@/pages/CreateCampaign";
 import NotFound from "@/pages/not-found";
 import Organizations from "@/pages/Organizations";
 import OrganizationDetail from "@/pages/OrganizationDetail";
+import About from "@/pages/About";
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -42,6 +44,7 @@ function Router() {
         <Route path="/organizations" component={Organizations} />
         <Route path="/organizations/:id" component={OrganizationDetail} />
         <Route path="/campaigns/:id" component={CampaignDetail} />
+        <Route path="/about" component={About} />
         
         {/* Protected Routes */}
         <Route path="/dashboard">
@@ -55,6 +58,7 @@ function Router() {
             <UserDashboard />
           </ProtectedRoute>
         </Route>
+
         
         <Route path="/apply-organization">
           <ProtectedRoute requiredRole={['user']}>

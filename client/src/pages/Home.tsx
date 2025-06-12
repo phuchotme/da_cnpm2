@@ -63,8 +63,8 @@ export default function Home() {
                 <Link href="/campaigns">Xem các chiến dịch</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/apply-organization" className="text-white hover:text-primary">
-                  Đăng ký tổ chức gây quỹ
+                <Link href="/about" className="bg-white text-primary hover:bg-gray-50">
+                  Về chúng tôi
                 </Link>
               </Button>
             </div>
